@@ -1,0 +1,12 @@
+{
+"requestTokenOutput" : {
+    "access_token": "ARMlBcofyz7AloYAtecP4xErH88yFmoe",
+    "refresh_token": "Bc6dlQwEEfbu3yCDzQycVOAioALbAUB2DhYsc55spPrkndtV7g4TcE2QtfTjXUYS",
+    "some_text": "not expired yet",
+    "token_type": "bearer",
+    "expires_in": 4232,
+    "restricted_to": {
+      
+    }
+  }
+}

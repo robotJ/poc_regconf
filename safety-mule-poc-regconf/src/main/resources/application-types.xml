@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="authorizationCode" format="json">
+      <types:shape format="weave" example="examples/AccessTokenExample-1.json"><![CDATA[%dw 2.0
+type authorizationCode = {|
+  token_type: String, 
+  some_text: String, 
+  restricted_to: Array<Any>, 
+  refresh_token: String, 
+  expires_in: Number {"typeId": "int"}, 
+  access_token: String
+|} {"MetadataFormat": "json",
+"example": "{\"token_type\":\"bearer\",\"some_text\":\"not expired yet\",\"restricted_to\":[],\"refresh_token\":\"Bc6dlQwEEfbu3yCDzQycVOAioALbAUB2DhYsc55spPrkndtV7g4TcE2QtfTjXUYS\",\"expires_in\":4232,\"access_token\":\"ARMlBcofyz7AloYAtecP4xErH88yFmoe\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="accessToken" format="json">
+      <types:shape format="weave" example="examples/AccessTokenExample.json"><![CDATA[%dw 2.0
+type accessToken = {|
+  token_type: String, 
+  some_text: String, 
+  restricted_to: Array<Any>, 
+  refresh_token: String, 
+  expires_in: Number {"typeId": "int"}, 
+  access_token: String
+|} {"MetadataFormat": "json",
+"example": "{\"token_type\":\"bearer\",\"some_text\":\"not expired yet\",\"restricted_to\":[],\"refresh_token\":\"Bc6dlQwEEfbu3yCDzQycVOAioALbAUB2DhYsc55spPrkndtV7g4TcE2QtfTjXUYS\",\"expires_in\":4232,\"access_token\":\"ARMlBcofyz7AloYAtecP4xErH88yFmoe\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="requestTokenOutput" format="json">
+      <types:shape format="weave" example="examples/requestTokenOutput-1.json"><![CDATA[%dw 2.0
+type requestTokenOutput = {|
+  requestTokenOutput: {|
+    access_token: String, 
+    refresh_token: String, 
+    some_text: String, 
+    token_type: String, 
+    expires_in: Number {"typeId": "int"}, 
+    restricted_to: {|  |}
+  |}
+|} {"MetadataFormat": "json",
+"example": "{\"requestTokenOutput\":{\"access_token\":\"ARMlBcofyz7AloYAtecP4xErH88yFmoe\",\"refresh_token\":\"Bc6dlQwEEfbu3yCDzQycVOAioALbAUB2DhYsc55spPrkndtV7g4TcE2QtfTjXUYS\",\"some_text\":\"not expired yet\",\"token_type\":\"bearer\",\"expires_in\":4232,\"restricted_to\":{}}}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#60fd1dac-2158-419e-a46d-2fba0d5e6ae0">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="requestTokenOutput"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="accessToken"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#6ae7e06d-ce88-410e-8fe0-557b1f2b3754">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="accessToken"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:mule-box-connector="http://www.mulesoft.org/schema/mule/mule-box-connector" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-box-connector http://www.mulesoft.org/schema/mule/mule-box-connector/current/mule-mule-box-connector.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="307ca5b0-4d72-45c5-bec1-da5c0090fe80" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<mule-box-connector:config name="Mule_box_connector_Config" doc:name="Mule-box-connector Config" doc:id="9d5cbb52-6f52-48db-9328-d5d00a001c04" property_clientId="123" property_clientSecret="456" property_localCallbackConfig="HTTP_Listener_config" property_externalCallbackUrl="http://localhost:8081/callback" property_authorizationUrl="http://localhost:8081/externalservices/authorize/Box" property_accessTokenUrl="http://localhost:8081/externalservices/token/Box">
+	</mule-box-connector:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="ffffc006-0c2d-483b-b291-97a918b6585d" file="mule-artifact.properties" />
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="0aacf4a5-c9d9-4897-949a-2c93c7e1ee0f" >
+		<salesforce:oauth-user-pass-connection consumerKey="3MVG9CEn_O3jvv0xaqmm9GRcN5VW2imhhpRFDWqfDTAB16iZvE4gm3VMlBy2BbszNnaLxwf..Uvm451IfbCR9" consumerSecret="5512081656542281825" username="iu@trailhead.pg" password="WdjNa7lvDRNSvXJVtv2S" />
+	</salesforce:sfdc-config>
+	<flow name="retrieveFileFlow" doc:id="8d68f3f0-3ab3-466d-b545-82dec98fe865" >
+		<http:listener doc:name="Listener" doc:id="a3477178-3ea8-4c60-92a4-227cd46f8346" config-ref="HTTP_Listener_config" path="/externalservices/retrievefile"/>
+		<mule-box-connector:get-file doc:name="Get file" doc:id="98e29b7b-89a1-4fb0-9207-b19b3f92ba6a" config-ref="Mule_box_connector_Config" file-id="365846410558"/>
+		<logger level="INFO" doc:name="Logger file" doc:id="34f4b9a2-9804-4014-ad30-a7788f24aaa7" message="Got file from Box: #[payload]" />
+	</flow>
+	<flow name="accessFlow" doc:id="12fb1aab-328a-42c8-95ea-b514a7cee571" >
+		<http:listener doc:name="Listener" doc:id="d5f7188c-f1b7-462b-a110-1f121cda9253" config-ref="HTTP_Listener_config" path="/externalservices/token/{sid}"/>
+		<set-variable value="#[attributes.uriParams.id]" doc:name="Set SID" doc:id="ef1f4f7d-5116-41b1-bdd1-f63eb1def11e" variableName="sid"/>
+		<ee:transform doc:name="Transform Message" doc:id="2495fdc1-0eb4-4d09-9a11-a3ccd901418b">
+			<ee:message>
+				<ee:set-payload><![CDATA[{
+	URLParameters: {
+		
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:invoke-apex-rest-method className="IQVIAElementToken" doc:name="Request Access" doc:id="6ae7e06d-ce88-410e-8fe0-557b1f2b3754" config-ref="Salesforce_Config" methodName="requestToken^/testtoken/Box^HttpPost^Object"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f1853547-e2e3-413f-a472-f7e307af0d6f" message="Request token response  = #[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="60fd1dac-2158-419e-a46d-2fba0d5e6ae0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	token_type : payload.requestTokenOutput.token_type,
+	refresh_token : payload.requestTokenOutput.refresh_token,
+	access_token : payload.requestTokenOutput.access_token,
+	expires_in : payload.requestTokenOutput.expires_in
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="authorizationFlow" doc:id="769cec8c-b223-426e-a045-119f633a16a6" >
+		<http:listener doc:name="Listener" doc:id="f7ca98e3-6408-4072-9cfc-9782b48093e0" config-ref="HTTP_Listener_config" path="/externalservices/authorize/{sid}" >
+			<http:response statusCode="#[vars.httpStatus]" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Location" : vars.httpLocation
+}]]]></http:headers>
+				
+			</http:response>
+		</http:listener>
+		<set-variable value="#[attributes.uriParams.id]" doc:name="Set SID" doc:id="d4555c55-7df3-43db-83a9-4fc9c2a9846a" variableName="sid" />
+		<ee:transform doc:name="Transform Message" doc:id="472e7a4d-fe14-48d1-a0b6-70ede686e3c3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[{
+	URLParameters: {
+		
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:invoke-apex-rest-method className="IQVIAElementAuth" methodName="requestAuthorization^/testauthorize/Box^HttpGet^String" doc:name="Request Authorization" doc:id="13e73339-e731-4829-94d0-a396a7b17662" config-ref="Salesforce_Config" />
+		<ee:transform doc:name="Transform Message" doc:id="288a4b9d-a4cb-46eb-8b5a-feed96c6cc05" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.requestAuthorizationOutput]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value='#[payload]' doc:name="Set location" doc:id="9a9671e5-72b9-4464-aa76-3f6144a40830" variableName="httpLocation" />
+		<logger level="INFO" doc:name="Logger" doc:id="2a75f0a3-fc25-4633-9298-6c030b4093c8" message='Request authorization response  = #[vars.httpLocation]' />
+		<set-variable value="200" doc:name="Set redirect http status" doc:id="2a49eccb-40de-4644-8bb6-b8fa3163cd6e" variableName="httpStatus"/>
+	</flow>
+</mule>

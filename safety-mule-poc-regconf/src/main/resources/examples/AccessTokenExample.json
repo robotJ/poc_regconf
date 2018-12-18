@@ -1,0 +1,8 @@
+{
+"token_type": "bearer",
+"some_text": "not expired yet",
+"restricted_to": [],
+"refresh_token": "Bc6dlQwEEfbu3yCDzQycVOAioALbAUB2DhYsc55spPrkndtV7g4TcE2QtfTjXUYS",
+"expires_in": 4232,
+"access_token": "ARMlBcofyz7AloYAtecP4xErH88yFmoe"
+}
