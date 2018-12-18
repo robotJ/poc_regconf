@@ -18,8 +18,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<salesforce:oauth-user-pass-connection consumerKey="3MVG9CEn_O3jvv0xaqmm9GRcN5VW2imhhpRFDWqfDTAB16iZvE4gm3VMlBy2BbszNnaLxwf..Uvm451IfbCR9" consumerSecret="5512081656542281825" username="iu@trailhead.pg" password="WdjNa7lvDRNSvXJVtv2S" />
 	</salesforce:sfdc-config>
 	<flow name="retrieveFileFlow" doc:id="8d68f3f0-3ab3-466d-b545-82dec98fe865" >
-		<http:listener doc:name="Listener" doc:id="a3477178-3ea8-4c60-92a4-227cd46f8346" config-ref="HTTP_Listener_config" path="/externalservices/retrievefile"/>
-		<mule-box-connector:get-file doc:name="Get file" doc:id="98e29b7b-89a1-4fb0-9207-b19b3f92ba6a" config-ref="Mule_box_connector_Config" file-id="365846410558"/>
+		<http:listener doc:name="Listener" doc:id="a3477178-3ea8-4c60-92a4-227cd46f8346" config-ref="HTTP_Listener_config" path="/externalservices/retrievefile/{fileId}"/>
+		<set-variable value="#[attributes.uriParams.fileId]" doc:name="Set File Id" doc:id="ca7a9e58-d621-4cc7-a97a-ab8050f45df8" variableName="fileId"/>
+		<mule-box-connector:get-file doc:name="Get file" doc:id="98e29b7b-89a1-4fb0-9207-b19b3f92ba6a" config-ref="Mule_box_connector_Config" file-id="#[vars.fileId]"/>
 		<logger level="INFO" doc:name="Logger file" doc:id="34f4b9a2-9804-4014-ad30-a7788f24aaa7" message="Got file from Box: #[payload]" />
 	</flow>
 	<flow name="accessFlow" doc:id="12fb1aab-328a-42c8-95ea-b514a7cee571" >
