@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</mule-box-connector:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="ffffc006-0c2d-483b-b291-97a918b6585d" file="mule-artifact.properties" />
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="0aacf4a5-c9d9-4897-949a-2c93c7e1ee0f" >
-		<salesforce:oauth-user-pass-connection consumerKey="3MVG9CEn_O3jvv0xaqmm9GRcN5VW2imhhpRFDWqfDTAB16iZvE4gm3VMlBy2BbszNnaLxwf..Uvm451IfbCR9" consumerSecret="5512081656542281825" username="iu@trailhead.pg" password="WdjNa7lvDRNSvXJVtv2S" />
+		<salesforce:oauth-user-pass-connection consumerKey="${sfdc.customerkey}" consumerSecret="${sfdc.customersecret}" username="${sfdc.username}" password="${sfdc.password}" tokenEndpoint="${sfdc.loginurl}"/>
 	</salesforce:sfdc-config>
 	<flow name="retrieveFileFlow" doc:id="8d68f3f0-3ab3-466d-b545-82dec98fe865" >
 		<http:listener doc:name="Listener" doc:id="a3477178-3ea8-4c60-92a4-227cd46f8346" config-ref="HTTP_Listener_config" path="/externalservices/retrievefile/{fileId}"/>
@@ -25,7 +25,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</flow>
 	<flow name="accessFlow" doc:id="12fb1aab-328a-42c8-95ea-b514a7cee571" >
 		<http:listener doc:name="Listener" doc:id="d5f7188c-f1b7-462b-a110-1f121cda9253" config-ref="HTTP_Listener_config" path="/externalservices/token/{sid}"/>
-		<set-variable value="#[attributes.uriParams.id]" doc:name="Set SID" doc:id="ef1f4f7d-5116-41b1-bdd1-f63eb1def11e" variableName="sid"/>
+		<set-variable value="#[attributes.uriParams.sid]" doc:name="Set SID" doc:id="ef1f4f7d-5116-41b1-bdd1-f63eb1def11e" variableName="sid"/>
 		<ee:transform doc:name="Transform Message" doc:id="2495fdc1-0eb4-4d09-9a11-a3ccd901418b">
 			<ee:message>
 				<ee:set-payload><![CDATA[{
@@ -35,7 +35,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<salesforce:invoke-apex-rest-method className="IQVIAElementToken" doc:name="Request Access" doc:id="6ae7e06d-ce88-410e-8fe0-557b1f2b3754" config-ref="Salesforce_Config" methodName="requestToken^/testtoken/Box^HttpPost^Object"/>
+		<salesforce:invoke-apex-rest-method doc:name="Request Access" doc:id="6ae7e06d-ce88-410e-8fe0-557b1f2b3754" config-ref="Salesforce_Config" methodName="requestToken^/testtoken/Box^HttpPost^Object" className="IQVIAElementToken"/>
 		<logger level="INFO" doc:name="Logger" doc:id="f1853547-e2e3-413f-a472-f7e307af0d6f" message="Request token response  = #[payload]" />
 		<ee:transform doc:name="Transform Message" doc:id="60fd1dac-2158-419e-a46d-2fba0d5e6ae0">
 			<ee:message>
@@ -62,7 +62,7 @@ output application/json
 				
 			</http:response>
 		</http:listener>
-		<set-variable value="#[attributes.uriParams.id]" doc:name="Set SID" doc:id="d4555c55-7df3-43db-83a9-4fc9c2a9846a" variableName="sid" />
+		<set-variable value="#[attributes.uriParams.sid]" doc:name="Set SID" doc:id="d4555c55-7df3-43db-83a9-4fc9c2a9846a" variableName="sid" />
 		<ee:transform doc:name="Transform Message" doc:id="472e7a4d-fe14-48d1-a0b6-70ede686e3c3" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[{
@@ -72,7 +72,7 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<salesforce:invoke-apex-rest-method className="IQVIAElementAuth" methodName="requestAuthorization^/testauthorize/Box^HttpGet^String" doc:name="Request Authorization" doc:id="13e73339-e731-4829-94d0-a396a7b17662" config-ref="Salesforce_Config" />
+		<salesforce:invoke-apex-rest-method className="IQVIAElementAuth" doc:name="Request Authorization" doc:id="13e73339-e731-4829-94d0-a396a7b17662" config-ref="Salesforce_Config" methodName="requestAuthorization^/testauthorize/Box^HttpGet^String"/>
 		<ee:transform doc:name="Transform Message" doc:id="288a4b9d-a4cb-46eb-8b5a-feed96c6cc05" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
